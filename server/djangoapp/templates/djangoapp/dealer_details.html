@@ -6,13 +6,75 @@
     {% load static %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'djangoapp:index' %}">BestCar Dealership Reviews</a>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul style="justify-content:left;" class="navbar-nav">
+                    <li class="navbar-brand">
+                        <a class="nav-link" href="{% url 'djangoapp:about' %}">About Us</a>
+                    </li>
+                    <li class="navbar-brand">
+                        <a class="nav-link" href="{% url 'djangoapp:contact' %}">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="nav navbar-nav navbar-right">
+                {% if user.is_authenticated %}
+                <li>
+                    <a class="btn btn-link" href="#">{{ user.first_name }} ({{ user.username }})</a>
+                    <a class="btn btn-link" href="{% url 'djangoapp:logout' %}">Logout</a>
+                </li>
+                {% else %}
+                <form class="form-inline" action="{% url 'djangoapp:login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Username" name="username" >
+                        <input type="password" class="form-control" placeholder="Password" name="psw" >
+                        <button class="btn btn-primary" type="submit">Login</button>
+                        <a class="nav-link" style="font-size:15px" href="{% url 'djangoapp:registration' %}">Sign Up</a>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
 
-    <body>
+    <main class="container" style="padding-top: 30px;">
+        <div class="row">
+            <div class="col-md-6">
+                <h2>{{ dealer.full_name }}</h2>
+                <p>{{ dealer.address }}</p>
+                <p>{{ dealer.city }}, {{ dealer.st }} {{ dealer.zip }}</p>
+            </div>
+        </div>
 
-    <!--Add a nav bar here -->
+        <hr>
 
-    <!-- Add reviews as cards -->
+        <h3>Dealer Reviews</h3>
 
-    </body>
+        <div class="row">
+            {% for review in reviews %}
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ review.car_make }}, {{ review.car_model }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">By {{ review.name }}</h6>
+                        <p class="card-text">{{ review.review }}</p>
+                        <p class="card-text">Purchase: {{ review.purchase }}</p>
+                        <p class="card-text">Purchase Date: {{ review.purchase_date }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
 </html>
+
+
