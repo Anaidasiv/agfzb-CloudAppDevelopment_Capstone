@@ -10,6 +10,9 @@ from datetime import datetime
 import logging
 import json
 
+from . import models
+from . import restapis
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -92,3 +95,37 @@ def get_dealer_details(request,dealer_id):
         
         return render(request, 'djangoapp/dealer_details.html', context)
 
+def add_review(request, dealer_id):
+    print("add_review function called")
+    if request.method == "GET":
+        dealersid = dealer_id
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/e81514e9-de36-4069-8e3b-01724008e3b0/dealership-package/get-dealership"
+        # Get dealers from the URL
+        context = {
+            "cars": models.CarModel.objects.all(),
+            "dealers": restapis.get_dealers_from_cf(url),
+        }
+        return render(request, 'djangoapp/add_review.html', context)
+    
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            form = request.POST
+            review = {
+                "name": f"{request.user.first_name} {request.user.last_name}",
+                "dealership": dealer_id,
+                "review": form["content"],
+                "purchase": form.get("purchasecheck"),
+            }
+            if form.get("purchasecheck"):
+                review["purchase_date"] = datetime.strptime(form.get("purchasedate"), "%m/%d/%Y").isoformat()
+                car = models.CarModel.objects.get(pk=form["car"])
+                review["car_make"] = car.carmake.name
+                review["car_model"] = car.name
+                review["car_year"] = car.year.strftime("%Y")
+            json_payload = {"review": review}
+            print(json_payload)
+            url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/e81514e9-de36-4069-8e3b-01724008e3b0/dealership-package/post-review"
+            restapis.post_request(url, json_payload, dealerId=dealer_id)
+            return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+        else:
+            return redirect("/djangoapp/login")
